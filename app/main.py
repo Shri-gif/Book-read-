@@ -56,3 +56,7 @@ async def process_files(
 async def get_status(task_id: str):
     task = celery_app.AsyncResult(task_id)
     return {"status": task.status, "result": task.result}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "ebook-pipeline"}
