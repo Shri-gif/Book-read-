@@ -3,24 +3,26 @@ services:
   api:
     build: .
     ports:
-      - "8000:8000"
-    volumes:
-      - ./static:/app/static
+      - "10000:10000"  # Changed to 10000
+    environment:
+      - OPENAI_KEY=sk-your-key
     depends_on:
       - redis
-      - worker
-  
-  worker:
-    build: .
-    command: celery -A tasks worker --loglevel=info
-    depends_on:
-      - redis
-  
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   redis:
     image: redis:alpine
-    
-  flower:
-    image: mher/flower
     ports:
-      - "5555:5555"
-    command: celery -A tasks flower
+      - "6379:6379"
+
+  worker:
+    build: .
+    command: celery -A app.tasks worker --loglevel=info
+    depends_on:
+      - redis
+    environment:
+      - OPENAI_KEY=sk-your-key 
