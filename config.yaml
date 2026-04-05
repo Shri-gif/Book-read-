@@ -1,4 +1,4 @@
-openai_key: "sk-your-key-here"
+openai_key: "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"
 templates_dir: "static/templates"
 redis_url: "redis://redis:6379"
 debug: true
