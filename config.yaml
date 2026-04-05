@@ -1,0 +1,4 @@
+openai_key: "sk-your-key-here"
+templates_dir: "static/templates"
+redis_url: "redis://redis:6379"
+debug: true
