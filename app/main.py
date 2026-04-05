@@ -57,6 +57,15 @@ async def get_status(task_id: str):
     task = celery_app.AsyncResult(task_id)
     return {"status": task.status, "result": task.result}
 
+
+# Add at TOP
+import os
+os.environ['TESSERACT_CMD'] = '/usr/bin/tesseract'
+
+# Add Health endpoint (line 20 ke baad)
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy", "service": "ebook-pipeline"}
+async def health():
+    return {"status": "healthy", "tesseract": os.popen('tesseract --version').read()[:100]}
+
+# Fix Redis URL
+app.celery_app.conf.broker_url = "redis://localhost:6379/0"
