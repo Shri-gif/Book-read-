@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     ghostscript \
     pandoc \
-    wkhtmltopdf \
     curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
