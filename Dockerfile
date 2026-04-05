@@ -2,14 +2,16 @@ FROM python:3.11-slim
 
 # Fix 1: System deps + Tesseract PATH
 RUN apt-get update && apt-get install -y \
-    tesseract-ocr-eng \
+    build-essential \
+    gcc \
+    python3-dev \
+    tesseract-ocr \
     poppler-utils \
     ghostscript \
     pandoc \
     curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "TESSERACT_PATH=/usr/bin/tesseract" >> /etc/environment
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* 
 
 ENV TESSERACT_CMD=/usr/bin/tesseract
 ENV PANDOC_PATH=/usr/bin/pandoc
