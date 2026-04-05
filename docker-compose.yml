@@ -1,1 +1,26 @@
-
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./static:/app/static
+    depends_on:
+      - redis
+      - worker
+  
+  worker:
+    build: .
+    command: celery -A tasks worker --loglevel=info
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:alpine
+    
+  flower:
+    image: mher/flower
+    ports:
+      - "5555:5555"
+    command: celery -A tasks flower
