@@ -1,29 +1,36 @@
 FROM python:3.11-slim
 
-# Install system dependencies FIRST (faster builds)
+# Fix 1: System deps + Tesseract PATH
 RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
+    tesseract-ocr-eng \
     poppler-utils \
     ghostscript \
     pandoc \
     wkhtmltopdf \
+    curl \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "TESSERACT_PATH=/usr/bin/tesseract" >> /etc/environment
+
+ENV TESSERACT_CMD=/usr/bin/tesseract
+ENV PANDOC_PATH=/usr/bin/pandoc
 
 WORKDIR /app
 
-# Copy requirements first (cache optimization)
+# Fix 2: Optimized pip install
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy app
+# Copy everything
 COPY . .
 
-# Render needs port 10000
+# Fix 3: Render port + Healthcheck
 EXPOSE 10000
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:10000/health || exit 1
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:10000/health || exit 1
-
-CMD ["sh", "-c", "celery -A app.tasks worker --loglevel=info & uvicorn app.main:app --host 0.0.0.0 --port 10000"] 
+# Fix 4: Background services + API
+CMD sh -c "redis-server --daemonize yes --port 6379 --bind 0.0.0.0 && \
+           celery -A app.tasks worker --loglevel=info --detach && \
+           uvicorn app.main:app --host 0.0.0.0 --port 10000 --reload"
